@@ -29,8 +29,13 @@ def test_payment_webhook_approved(mocker):
         "time": "10:00",
         "location": "Downtown Office",
         "user_name": "Jane Smith",
+        "child_name": "Jane Child",
+        "parent_name": "Jane Smith",
+        "referral_name": "None",
+        "patient_age_group": "Child (0-12)",
+        "observations": "Enjoys playing",
         "price": 150,
-        "duration_minutes": 45,
+        "duration_minutes": 60,
         "location_address": "456 Oak Avenue, Springfield",
     }
     mock_redis = MagicMock()
@@ -56,6 +61,12 @@ def test_payment_webhook_approved(mocker):
 
     assert resp.status_code == 200
     mock_calendar.create_event.assert_called_once()
+    event_args = mock_calendar.create_event.call_args.kwargs
+    assert event_args["referral_name"] == "None"
+    assert event_args["patient_age_group"] == "Child (0-12)"
+    assert event_args["observations"] == "Enjoys playing"
+    assert event_args["duration_minutes"] == 60
+    assert "location_address" not in event_args
     mock_send.assert_called_once()
     assert "confirmed" in mock_send.call_args[0][1].lower()
 
@@ -69,8 +80,12 @@ def test_payment_webhook_rejected(mocker):
         "time": "10:00",
         "location": "Downtown Office",
         "user_name": "Jane Smith",
+        "child_name": "Jane Child",
+        "parent_name": "Jane Smith",
+        "referral_name": "None",
+        "patient_age_group": "Child (0-12)",
         "price": 150,
-        "duration_minutes": 45,
+        "duration_minutes": 60,
         "location_address": "456 Oak Avenue, Springfield",
     }
     mock_redis = MagicMock()

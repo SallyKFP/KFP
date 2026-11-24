@@ -64,10 +64,10 @@ Getting here by private transport: Head down 38 Stevens Road, past Chelsea Garde
 MAKING AN APPOINTMENT
 ===================
 
-To request an appointment, please provide the information in the appointment-request FAQ's point-form format. A referral is not required. The administrative team must review and confirm the request; do not treat an appointment as confirmed until the clinic confirms it. A referring doctor, therapist, or other professional may provide a referral letter for continuity of care.
-We try our very best to accommodate your request for specific appointment times and physiotherapists. However, some appointment slots are ultra-popular and you may need to wait for some time before the slot becomes available. If your child has a condition that requires physiotherapy attention very quickly, we will advise you and offer you an appointment slot that is most suitable to your child’s needs and your schedule.
+To request an appointment, please provide the service, preferred date and time, and the patient's full name. A referral is not required. A referring doctor, therapist, or other professional may provide a referral letter for continuity of care. Saturday appointments are only for follow-up patients who have completed an initial evaluation; first-time patients must book their initial evaluation on a weekday.
+We try our very best to accommodate your request for specific appointment times and physiotherapists. If your child has a condition that requires physiotherapy attention very quickly, a consultant must review the clinical concern.
 Similarly, your physiotherapist of choice may not be available immediately to work with your child. In this case, you may choose to work with another physiotherapist or wait for your choice. All our physiotherapists have similar depth of paediatric physiotherapy training (but we do possess different therapy styles) and we are all fully competent to look after children from a large spectrum of special needs.
-We respect your time and your punctuality. We have reserved 45 minutes solely for your child. We do not double-book our appointment slots so that we can serve you and your child with undivided attention.
+We respect your time and punctuality. We do not double-book appointments so that we can serve each patient with undivided attention.
 You will receive an appointment reminder 48 hours before your scheduled appointment through WhatsApp. Kindly respond to this reminder to confirm your attendance.
 
 INITIAL evaluation
@@ -80,8 +80,9 @@ Please arrive at least 5 minutes before your appointment time to allow your chil
 
 Cancellation and latecoming
 ===================
-For appointments other than Saturday appointments, please cancel within 36 hours of the appointment or as soon as you know you are unavailable, whichever is sooner. Cancellation charges equivalent to 100% of therapy fees apply to cancellations made with less than 36 hours' notice. This allows us to offer the slot to another child on our waiting list.
-Saturday appointments must be paid for when made, and the payment is non-refundable. A Saturday appointment may be rescheduled to another available slot. Rescheduling should ordinarily be requested at least 36 hours in advance. If illness makes late rescheduling necessary, a medical certificate is required when less than 36 hours' notice is given.
+For weekday appointments, cancellations within 36 hours of the appointment incur a charge equivalent to 100% of the physiotherapy fee. Rescheduling is allowed only when requested more than 36 hours before the appointment. Within or exactly 36 hours, rescheduling is allowed only with a valid medical certificate (MC). Without a valid MC, the patient must cancel and make a new booking from scratch, providing all booking details again; the 100% cancellation charge applies.
+Saturday appointments are only for follow-up patients who have completed an initial evaluation. Each is a single intervention prepaid at SGD 300, and the payment is non-refundable. Rescheduling is allowed only when requested more than 36 hours before the appointment. Within or exactly 36 hours, a valid medical certificate is required; without one, the patient must cancel and make a new booking from scratch, and the 100% cancellation charge applies. Saturday bookings and changes must be handled by the administrative team because the bot does not manage their payment route.
+For every rescheduling request, explain the applicable policy before proceeding. If the patient objects, disputes the policy, or requests an exception, stop the rescheduling workflow and say: "A member of our administrative team can assist you with this. Please contact the clinic directly." Do not claim that staff have been contacted.
 If you are late for your appointment, you will be seen for the remainder of the time your appointment was originally scheduled for.
 
 PHYSIOTHERAPY REPORT
@@ -91,7 +92,17 @@ Should you require a physiotherapy report for your own record keeping or any oth
 
 COMMON QUESTIONS AND ANSWERS
 ============================
-Use these entries as the canonical answers for matching questions. Match by meaning, not only exact wording. Preserve the stated prices, hours, eligibility rules, and conditions. For entries marked HUMAN REVIEW REQUIRED: YES, explain that the administrative team must review and confirm the request. Never say an appointment is confirmed before the clinic confirms it.
+Use these entries as the canonical answers for matching questions. Match by meaning, not only exact wording. Preserve the stated prices, hours, eligibility rules, and conditions. For entries marked HUMAN REVIEW REQUIRED: YES, explain that the administrative team will assist with the request.
+
+FAQ ID: physiotherapist_experience_and_continuity
+CATEGORY: consultant_selection
+SAMPLE QUESTIONS:
+- Which physiotherapist has the most experience treating infants with torticollis?
+- Who has experience with fibromatosis colli?
+- Can all three appointments be with the same physiotherapist?
+- Can we see the same physiotherapist throughout our stay?
+ANSWER: All of our consultants are experienced in various areas of paediatric physiotherapy and will be able to help your child. You may request the same physiotherapist for all appointments, subject to calendar availability. If your preferred physiotherapist is unavailable, you may choose another physiotherapist or wait for your preferred one.
+HUMAN REVIEW REQUIRED: YES
 
 FAQ ID: consultant_names
 CATEGORY: consultants
@@ -131,6 +142,16 @@ SAMPLE QUESTIONS:
 ANSWER: Our clinic is open from 8:00 AM to 6:00 PM, Monday to Friday, and from 8:00 AM to 12:00 noon on Saturday. We are closed on Sundays and public holidays.
 HUMAN REVIEW REQUIRED: NO
 
+FAQ ID: home_visits
+CATEGORY: appointments
+SAMPLE QUESTIONS:
+- Do you offer home visits?
+- Can a physiotherapist come to our home?
+- Can my child have physiotherapy at home?
+- Do you provide home-based physiotherapy?
+ANSWER: Thank you for asking. We’re unable to offer home visits, as all appointments take place at our clinic, which has purpose-built facilities for paediatric physiotherapy.
+HUMAN REVIEW REQUIRED: NO
+
 FAQ ID: walk_in_appointment
 CATEGORY: appointments
 SAMPLE QUESTIONS:
@@ -138,8 +159,8 @@ SAMPLE QUESTIONS:
 - Can I see a physiotherapist now?
 - Do you accept walk-ins?
 - Can I come without an appointment?
-ANSWER: Unfortunately, we are unable to accept walk-ins. All patients require an appointment. If you would like to request an appointment, please provide the required details and the administrative team will review your request and confirm availability.
-HUMAN REVIEW REQUIRED: YES
+ANSWER: Unfortunately, we are unable to accept walk-ins. All patients require an appointment. To request an appointment, please provide the service, preferred date and time, and the patient's full name.
+HUMAN REVIEW REQUIRED: NO
 
 FAQ ID: make_appointment
 CATEGORY: appointments
@@ -150,14 +171,15 @@ SAMPLE QUESTIONS:
 - Can I schedule a physiotherapy appointment?
 - What details do I need to provide to request an appointment?
 ANSWER: To schedule an appointment, please provide:
-- Your child's full name and date of birth
-- Your full name
-- Your WhatsApp contact number
-- The referring person's name, if any
-- Your preferred day and time
+- The service you would like to book
+- Your preferred date and time
+- The patient's full name and date of birth
+- Your full name as the parent or guardian
+- Whether the patient resides in Singapore
+- The referring person's name, or confirm that there is no referral
 
-The administrative team will review your request and confirm the appointment. An appointment is not confirmed until the clinic confirms it.
-HUMAN REVIEW REQUIRED: YES
+Our administrative team can assist you with your appointment request.
+HUMAN REVIEW REQUIRED: NO
 
 FAQ ID: child_development_appointment
 CATEGORY: clinical_appointment_requests
@@ -165,17 +187,18 @@ SAMPLE QUESTIONS:
 - My 3-year-old daughter has developmental delay due to a genetic mutation and cannot stand or walk independently. Is this the right facility, and which physiotherapist would you recommend?
 - My child has developmental delays and needs help learning to walk. Can your physiotherapists help?
 - Which physiotherapist should I see for my child's developmental delay?
-ANSWER: All our consultants are suitable to help your child.
+ANSWER: All our consultants are suitable to help your child. Thank you for sharing your child's background. A consultant would need to review these details; we are unable to provide medical advice over chat.
 
 To schedule an appointment, please provide:
-- Your child's full name and date of birth
-- Your full name
-- Your WhatsApp contact number
-- The referring person's name, if any
-- Your preferred day and time
+- The service you would like to book
+- Your preferred date and time
+- The patient's full name and date of birth
+- Your full name as the parent or guardian
+- Whether the patient resides in Singapore
+- The referring person's name, or confirm that there is no referral
 
-The administrative team will review your request and confirm the appointment. It is not confirmed until the clinic confirms it.
-HUMAN REVIEW REQUIRED: YES
+Our administrative team can assist you with your appointment request.
+HUMAN REVIEW REQUIRED: NO
 
 FAQ ID: consultant_referral_and_fees
 CATEGORY: referrals_and_fees
@@ -183,15 +206,8 @@ SAMPLE QUESTIONS:
 - I have a referral letter to see Serena Kwa for my one-month-old baby with torticollis and plagiocephaly. What are the charges?
 - My doctor referred my baby to a particular consultant. What are your fees?
 - I have a referral for my child and would like to know the physiotherapy charges.
-ANSWER: Thank you for reaching out. To schedule an appointment, please provide:
-- Your child's full name and date of birth
-- Your full name
-- Your WhatsApp contact number
-- The referring person's name, if any
-- Your preferred day and time
-
-The initial evaluation is SGD 300 and takes approximately 45 minutes. A follow-up intervention session is SGD 280 and also takes approximately 45 minutes. The administrative team will review your request and confirm the appointment. It is not confirmed until the clinic confirms it.
-HUMAN REVIEW REQUIRED: YES
+ANSWER: Thank you for reaching out. The initial evaluation is SGD 300, and a follow-up intervention session is SGD 280. To request an appointment, please provide the service, your preferred date and time, the patient's full name and date of birth, the parent's full name, and the referring person's name or confirm there is no referral. A referral is not required to book.
+HUMAN REVIEW REQUIRED: NO
 
 FAQ ID: appointment_slot_availability
 CATEGORY: appointments
@@ -200,8 +216,8 @@ SAMPLE QUESTIONS:
 - What is your appointment availability?
 - Are there any slots available this week?
 - Can you check the available appointment times?
-ANSWER: Live appointment availability needs to be checked by our administrative team. Please let us know your preferred days or times, and the team will check the available slots and get back to you. An appointment is not confirmed until the clinic confirms it.
-HUMAN REVIEW REQUIRED: YES
+ANSWER: Please let me know which service you need and the date or date range you are considering, and I can check the calendar for available appointment times. You do not need to provide patient or parent names just to check availability.
+HUMAN REVIEW REQUIRED: NO
 
 FAQ ID: appointment_fees
 CATEGORY: fees
@@ -211,8 +227,50 @@ SAMPLE QUESTIONS:
 - What are your charges?
 - How much is the initial assessment?
 - How much is a follow-up session?
-ANSWER: The initial evaluation is SGD 300 and takes approximately 45 minutes. A follow-up intervention session is SGD 280 and also takes approximately 45 minutes.
+- Do I get a discount if I have a referral letter?
+- Are your fees lower with a doctor's letter?
+ANSWER: The initial evaluation is SGD 300, and a follow-up intervention session is SGD 280. There is no discount for a referral letter; we maintain a transparent and consistent fee structure with every family. A referring doctor may provide a referral letter for continuity of care, but a referral is not required to make an appointment.
 HUMAN REVIEW REQUIRED: NO
+
+FAQ ID: insurance_and_payment
+CATEGORY: payments_and_insurance
+SAMPLE QUESTIONS:
+- Do you accept Cigna or Bupa insurance direct billing?
+- Do you offer insurance direct billing?
+- Is any insurance company on your insurance panel?
+- Can I claim from my insurance?
+- What payment methods do you accept?
+- Can I pay by credit card?
+ANSWER: We do not bill insurance providers directly. We can provide an invoice for you to seek reimbursement from your insurance company. We accept payment through your child's CDA account (also known as Baby Bonus), cash, or PayNow. Credit card payment is available on-site with an additional small service fee.
+HUMAN REVIEW REQUIRED: NO
+
+FAQ ID: phone_and_contact_channels
+CATEGORY: contact_information
+SAMPLE QUESTIONS:
+- I called the number on your website. Why is no one answering?
+- Why can't I get through by phone?
+- How can I contact the clinic?
+- Can I call the clinic?
+ANSWER: I'm sorry for the frustration. The clinic handles enquiries through WhatsApp text messages and email. You can message us on this WhatsApp chat or email sarah.kidsfocus@gmail.com or kidsfocussamantha@gmail.com. Clinic hours are Monday to Friday, 8:00 AM to 6:00 PM, and Saturday, 8:00 AM to 12:00 noon. The clinic is closed on Sundays and public holidays.
+HUMAN REVIEW REQUIRED: NO
+
+FAQ ID: check_next_appointment
+CATEGORY: appointments
+SAMPLE QUESTIONS:
+- I forgot when my next appointment is. Can you check?
+- When is my child's next appointment?
+- Can you remind me of my appointment date?
+ANSWER: To help the administrative team look up your appointment, please provide your child's full name, your name, and your WhatsApp contact number. If you are not the caregiver who scheduled your child's first appointment, please also provide that caregiver's name and WhatsApp contact number.
+HUMAN REVIEW REQUIRED: YES
+
+FAQ ID: schedule_multiple_appointments
+CATEGORY: appointments
+SAMPLE QUESTIONS:
+- Can I schedule a few appointments in advance?
+- Can I book several follow-up appointments ahead of time?
+- It is difficult to get an appointment after my consultation. Can I book more in advance?
+ANSWER: Our administrative team will assist you with arranging your appointments.
+HUMAN REVIEW REQUIRED: YES
 
 FAQ ID: evaluation_report
 CATEGORY: reports
@@ -242,7 +300,21 @@ SAMPLE QUESTIONS:
 - Are Saturday appointments available for new patients?
 - Hi, can I schedule an appointment for this Saturday?
 - Can my child have their first appointment on a Saturday?
-ANSWER: Thank you for reaching out. Saturday appointments are not available for new patients because all initial evaluations are held on weekdays. Weekend appointment demand is extremely high, so after completing an initial evaluation, existing patients may request a Saturday follow-up appointment, subject to availability and potentially a wait. The administrative team must review and confirm any appointment request.
+ANSWER: Saturday appointments are not available to first-time patients. An initial evaluation must be booked on a weekday. Saturday appointments are only for follow-up patients who have completed an initial evaluation, and are subject to availability and reasonable wait times.
+
+Our clinic hours are:
+- Monday to Friday: 8:00 AM to 6:00 PM
+- Saturday: 8:00 AM to 12:00 noon
+- Sunday and public holidays: Closed
+
+To schedule an appointment, please provide:
+- The patient's full name and date of birth
+- Your full name
+- Your WhatsApp contact number
+- The referring person's name, if any
+- Your preferred day and time
+
+Our administrative team will assist you with your request.
 HUMAN REVIEW REQUIRED: YES
 
 FAQ ID: existing_patient_saturday
@@ -254,7 +326,7 @@ SAMPLE QUESTIONS:
 - Are Saturday appointments available for existing patients?
 - But we are not new patients; my baby was at your clinic six months ago. Can we book a Saturday appointment?
 - My child has been to your clinic before. Can I request a Saturday follow-up?
-ANSWER: Saturday follow-up appointments are available only to existing patients who have completed an initial evaluation. They are subject to availability and may involve a wait because demand for weekend appointments is extremely high. Once the appointment is scheduled, full payment of SGD 300 for the approximately 45-minute session must be made upfront by PayNow to UEN 200802130M. Payment is non-refundable. You may request to reschedule with at least 36 hours' notice. If you need to reschedule with less than 36 hours' notice due to illness, a medical certificate stating that your child is unfit for physiotherapy for that appointment is required. If you would like to proceed with a Saturday appointment request, please reply AGREE. The administrative team must review and confirm the request, so replying AGREE does not confirm an appointment.
+ANSWER: Saturday appointments are only for follow-up patients who have completed an initial evaluation. They are subject to availability and may involve a wait because demand for weekend appointments is extremely high. Each Saturday appointment is a single intervention. Saturday bookings and changes are handled by our administrative team, who will assist you with your request.
 HUMAN REVIEW REQUIRED: YES
 
 FAQ ID: saturday_payment_policy
@@ -264,7 +336,7 @@ SAMPLE QUESTIONS:
 - Is payment required when booking a Saturday appointment?
 - Is the Saturday appointment fee refundable?
 - Can I reschedule a Saturday appointment?
-ANSWER: Saturday appointments must be paid for when the appointment is made. Once payment has been made, it is non-refundable. However, the appointment may be rescheduled to another available slot. Rescheduling must ordinarily be requested at least 36 hours in advance. If illness makes late rescheduling necessary, a medical certificate is required when less than 36 hours' notice is given.
+ANSWER: Each Saturday appointment is a single intervention prepaid at SGD 300 by PayNow to UEN 200802130M. Payment is non-refundable. Rescheduling is allowed only when requested more than 36 hours before the appointment. Within or exactly 36 hours, a valid medical certificate is required; without one, the appointment must be cancelled and a new booking made from scratch, with the 100% cancellation charge applying. Saturday bookings and changes must be handled by the administrative team; the bot does not book or reschedule them.
 HUMAN REVIEW REQUIRED: YES
 
 FAQ ID: cda_payment

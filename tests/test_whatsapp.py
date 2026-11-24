@@ -6,6 +6,17 @@ from core.whatsapp import validate_webhook_signature, WhatsAppClient
 SECRET = "test_app_secret"
 BODY = b'{"test": "data"}'
 
+
+@pytest.mark.asyncio
+async def test_client_send_raises_on_api_failure(httpx_mock):
+    import httpx
+
+    httpx_mock.add_response(url="https://graph.facebook.com/v22.0/123/messages", status_code=400)
+    client = WhatsAppClient(phone_number_id="123", access_token="token")
+    with pytest.raises(httpx.HTTPStatusError):
+        await client.send_text("54911111111", "hello")
+
+
 def _make_sig(body: bytes, secret: str) -> str:
     return "sha256=" + hmac.new(secret.encode(), body, hashlib.sha256).hexdigest()
 

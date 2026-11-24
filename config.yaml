@@ -14,5 +14,39 @@ modules:
   payments: false
   reminders: false
 
+booking:
+  consultants:
+    - name: "Consultant Sarah"
+      calendar_id_env: "CONSULTANT_1_CALENDAR_ID"
+    - name: "Consultant Serena"
+      calendar_id_env: "CONSULTANT_2_CALENDAR_ID"
+  business_hours:
+    start: "08:00"
+    end: "18:00"
+  cancellation_policy: "Weekday cancellations within 36 hours of the appointment incur a charge equal to 100% of the physiotherapy fee. Weekday rescheduling is allowed only when requested more than 36 hours before the appointment. Within or exactly 36 hours, rescheduling is allowed only with a valid medical certificate (MC); without a valid MC, the patient must cancel and make a new booking from scratch, providing all booking details again, and the 100% cancellation charge applies. A patient residing in Singapore may book one weekday appointment without prepayment; additional appointments require prepayment and administrative assistance. Patients not residing in Singapore need administrative review. Saturday appointments are single interventions prepaid at SGD 300 and non-refundable. Rescheduling is allowed only when requested more than 36 hours ahead; within or exactly 36 hours, a valid medical certificate is required. Without one, the patient must cancel and make a new booking from scratch, and the 100% cancellation charge applies. The bot does not book or reschedule Saturday appointments; refer these requests to the administrative team."
+  services:
+    - name: "Initial evaluation"
+      duration_minutes: 60
+      price: 300
+    - name: "Follow-up intervention"
+      duration_minutes: 60
+      price: 280
+  locations:
+    - name: "Kids Focus Physiotherapy"
+      address: "30 Orange Grove Road, RELC Building, #07-10, Singapore 258352"
+      days: ["monday", "tuesday", "wednesday", "thursday", "friday"]
+
 payments:
   sandbox: true
+
+reminders:
+  message_template: |
+    Good day,
+
+    {patient} has a scheduled physiotherapy appt with {consultant} on:
+
+    {date}, {time}
+
+    Rescheduling is allowed only if requested more than 36 hours before the appointment. Within or exactly 36 hours, rescheduling is allowed only with a valid medical certificate (MC). Without a valid MC, you will need to cancel and make a new booking from scratch, providing all booking details again; the 100% cancellation charge applies.
+
+    To confirm attendance, reply YES only, without punctuation or other words. Other replies will not confirm attendance.

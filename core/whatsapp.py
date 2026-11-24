@@ -40,6 +40,7 @@ class WhatsAppClient:
         resp = await self._client.post(url, json=payload, headers=self._headers)
         if not resp.is_success:
             logger.error("WhatsApp send error %s: %s", resp.status_code, resp.text)
+            resp.raise_for_status()
 
     async def download_media(self, media_id: str) -> tuple[bytes, str]:
         url = f"{WA_API_BASE}/{media_id}"
@@ -51,3 +52,30 @@ class WhatsAppClient:
         media_resp = await self._client.get(download_url, headers=self._headers)
         media_resp.raise_for_status()
         return media_resp.content, mime_type
+
+
+class DialogSandboxClient:
+    """360dialog sandbox text messages, restricted to one test recipient."""
+
+    def __init__(self, api_key: str, recipient: str):
+        self._api_key = api_key
+        self._recipient = recipient
+        self._client = httpx.AsyncClient(timeout=30)
+
+    async def send_text(self, to: str, text: str) -> None:
+        if to != self._recipient:
+            raise ValueError("The recipient does not match the configured sandbox recipient.")
+        response = await self._client.post(
+            "https://waba-sandbox.360dialog.io/v1/messages",
+            headers={"D360-API-KEY": self._api_key},
+            json={
+                "messaging_product": "whatsapp",
+                "to": to,
+                "type": "text",
+                "text": {"body": text},
+            },
+        )
+        response.raise_for_status()
+
+    async def aclose(self) -> None:
+        await self._client.aclose()

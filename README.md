@@ -1,5 +1,20 @@
 <h1 align="center">WhatsApp AI Receptionist</h1>
 
+> **Dashboard staging branch:** This is a test snapshot, not production.
+> Booking, payments, and scheduled reminders are disabled in `config.yaml`.
+> Use a dedicated test PostgreSQL database and test-only WhatsApp credentials;
+> do not connect the clinic's number, production calendars, or patient data.
+> Configure `DATABASE_URL`, `DASHBOARD_ACCOUNTS`, and a strong
+> `DASHBOARD_SESSION_SECRET` in the staging service. The app also needs
+> `WHATSAPP_PHONE_NUMBER_ID`, `WHATSAPP_ACCESS_TOKEN`, `WHATSAPP_APP_SECRET`,
+> and `WHATSAPP_VERIFY_TOKEN` to start. Keep dashboard secure cookies enabled
+> over HTTPS. The dashboard is at `/dashboard`.
+>
+> Automatic takeover through the WhatsApp provider has not been verified.
+> The dashboard switches do not stop reminders, and Sally may reply when the
+> switch state cannot be read. Use only a disposable database for
+> `DASHBOARD_TEST_DATABASE_URL` and PostgreSQL integration tests.
+
 **Your clients are messaging you on WhatsApp anyway. This bot answers them.**
 
 Service businesses -- dentists, nutritionists, physiotherapists, salons -- lose bookings because nobody picks up the phone at 11pm. Clients message on WhatsApp, get no reply, and book elsewhere. The AI receptionist handles the conversation, checks real-time availability, and books directly into Google Calendar. No app to install, no portal to learn. Just WhatsApp.
