@@ -10,9 +10,9 @@ client:
       end: "12:00"
 
 modules:
-  booking: false
+  booking: true
   payments: false
-  reminders: false
+  reminders: true
 
 booking:
   consultants:
