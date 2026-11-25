@@ -14,6 +14,7 @@ from dotenv import load_dotenv
 
 from config.loader import load_config
 from core.ai import extract_booking_intent, get_ai_response, load_knowledge
+from core.handover import compose_handover_reply, handover_reason
 from core.confirmation import (
     BOOKING_CONFIRMATION_INSTRUCTION,
     BOOKING_NOT_CONFIRMED,
@@ -161,6 +162,18 @@ async def _sally_should_reply(chat_id: int, contact_label: str | None = None) ->
     except Exception:
         logger.exception("Could not read dashboard switches; Sally will reply")
         return True
+
+
+async def _pause_for_handover(chat_id: int, reason: str) -> None:
+    if _dashboard_store is None:
+        logger.error("Cannot hand over chat to staff: dashboard database is unavailable")
+        return
+    try:
+        await asyncio.to_thread(
+            _dashboard_store.pause_for_handover, "telegram", str(chat_id), reason
+        )
+    except Exception:
+        logger.exception("Could not pause chat for staff handover")
 
 
 async def _reminder_allowed(channel: str, contact_id: str) -> bool:
@@ -1385,6 +1398,12 @@ async def _handle_update(
         return
 
     intent, answer = extract_booking_intent(raw_answer)
+    if intent and intent.get("intent") == "handover":
+        reply = compose_handover_reply(answer)
+        history.add(str(user_id), "assistant", reply)
+        await _reply_to_message(client, token, chat_id, reply)
+        await _pause_for_handover(chat_id, handover_reason(intent))
+        return
     if intent and intent.get("intent") == "booking_draft":
         details = dict(intent)
         proposal = existing_proposal(details, pending) if pending else extract_general_observations(conversation, user_text)

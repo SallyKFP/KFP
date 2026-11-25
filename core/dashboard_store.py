@@ -82,6 +82,9 @@ class DashboardStore:
                 """
             )
             conn.execute(
+                "ALTER TABLE dashboard_contacts ADD COLUMN IF NOT EXISTS handover_reason TEXT"
+            )
+            conn.execute(
                 """
                 CREATE TABLE IF NOT EXISTS dashboard_processed_echoes (
                     message_id TEXT PRIMARY KEY
@@ -174,11 +177,24 @@ class DashboardStore:
         contact_id = _validate(channel, contact_id)
         with psycopg.connect(self._database_url) as conn:
             cursor = conn.execute(
-                "UPDATE dashboard_contacts SET bot_enabled = %s, updated_at = CURRENT_TIMESTAMP "
+                "UPDATE dashboard_contacts SET bot_enabled = %s, updated_at = CURRENT_TIMESTAMP, "
+                "handover_reason = CASE WHEN %s THEN NULL ELSE handover_reason END "
                 "WHERE channel = %s AND contact_id = %s",
-                (bool(enabled), channel, contact_id),
+                (bool(enabled), bool(enabled), channel, contact_id),
             )
             return cursor.rowcount > 0
+
+    def pause_for_handover(self, channel: str, contact_id: str, reason: str) -> None:
+        """Switch Sally off for this chat because a human needs to answer part of it."""
+        contact_id = _validate(channel, contact_id)
+        with psycopg.connect(self._database_url) as conn:
+            conn.execute(
+                "INSERT INTO dashboard_contacts (channel, contact_id, bot_enabled, handover_reason) "
+                "VALUES (%s, %s, FALSE, %s) "
+                "ON CONFLICT (channel, contact_id) DO UPDATE SET bot_enabled = FALSE, "
+                "handover_reason = EXCLUDED.handover_reason, updated_at = CURRENT_TIMESTAMP",
+                (channel, contact_id, reason),
+            )
 
     def pause_for_whatsapp_echo(self, contact_id: str, message_id: str) -> bool:
         """Pause the recipient once per human message, even if its webhook is retried."""
@@ -207,6 +223,6 @@ class DashboardStore:
     def list_contacts(self) -> list[dict]:
         with psycopg.connect(self._database_url, row_factory=dict_row) as conn:
             return conn.execute(
-                "SELECT channel, contact_id, contact_label, bot_enabled "
+                "SELECT channel, contact_id, contact_label, bot_enabled, handover_reason "
                 "FROM dashboard_contacts ORDER BY bot_enabled, updated_at DESC, contact_id"
             ).fetchall()
