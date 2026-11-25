@@ -18,6 +18,7 @@ from starlette.middleware.sessions import SessionMiddleware
 
 from config.loader import load_config
 from core.ai import extract_booking_intent, get_ai_response, load_knowledge
+from core.handover import compose_handover_reply, handover_reason
 from core.dashboard_store import DashboardStore, normalize_phone
 from core.confirmation import (
     BOOKING_CONFIRMATION_INSTRUCTION,
@@ -431,6 +432,16 @@ async def _reminder_allowed(channel: str, contact_id: str) -> bool:
         return False
 
 
+async def _pause_for_handover(channel: str, contact_id: str, reason: str) -> None:
+    if _dashboard_store is None:
+        logger.error("Cannot hand over chat to staff: dashboard database is unavailable")
+        return
+    try:
+        await asyncio.to_thread(_dashboard_store.pause_for_handover, channel, contact_id, reason)
+    except Exception:
+        logger.exception("Could not pause chat for staff handover")
+
+
 async def _send_scheduled_reminders() -> dict:
     if not CONFIG.get("modules", {}).get("reminders"):
         logger.info("Scheduled reminders skipped because the reminders module is disabled")
@@ -623,7 +634,12 @@ async def dashboard_preview(request: Request):
         contacts_html = "".join(
             _switch_row_html(
                 str(c["contact_label"] or c["contact_id"]),
-                f"{'WhatsApp' if c['channel'] == 'whatsapp' else 'Telegram'} · {c['contact_id']}",
+                f"{'WhatsApp' if c['channel'] == 'whatsapp' else 'Telegram'} · {c['contact_id']}"
+                + (
+                    f" · Needs staff ({html.escape(c['handover_reason'])} question)"
+                    if c.get("handover_reason") and not c["bot_enabled"]
+                    else ""
+                ),
                 csrf,
                 bool(c["bot_enabled"]),
                 "contact",
@@ -1083,6 +1099,13 @@ async def _process_message(phone: str, user_text: str):
 
     # Check for intent
     intent, visible_response = extract_booking_intent(ai_response)
+
+    if intent and intent.get("intent") == "handover":
+        reply = compose_handover_reply(visible_response)
+        HISTORY.add(phone, "assistant", reply)
+        await WA.send_text(phone, reply)
+        await _pause_for_handover("whatsapp", phone, handover_reason(intent))
+        return
 
     if intent and intent.get("intent") == "booking_draft":
         details = dict(intent)
