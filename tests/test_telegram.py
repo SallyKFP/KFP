@@ -1,3 +1,4 @@
+import asyncio
 import logging
 from datetime import date, datetime, time, timedelta
 
@@ -178,10 +179,41 @@ async def test_running_telegram_bot_owns_scheduler_and_cleans_up_on_polling_exit
             return {"username": "test"}
         raise TelegramConflictError("polling conflict")
 
+    async def no_sleep(_seconds):
+        return None
+
     monkeypatch.setattr("core.telegram.run_daily_reminders", daily)
     monkeypatch.setattr("core.telegram._telegram_request", request)
-    await telegram.run_bot("test-token", {123})
+    monkeypatch.setattr("core.telegram.asyncio.sleep", no_sleep)
+    with pytest.raises(RuntimeError, match="did not clear"):
+        await telegram.run_bot("test-token", {123})
     assert stopped.is_set()
+
+
+@pytest.mark.asyncio
+async def test_run_bot_retries_after_polling_conflict_then_polls(monkeypatch):
+    calls = {"getUpdates": 0}
+
+    async def daily(_timezone, _channel, _send):
+        await asyncio.Event().wait()
+
+    async def request(_client, _token, method, **_kwargs):
+        if method == "getMe":
+            return {"username": "test"}
+        calls["getUpdates"] += 1
+        if calls["getUpdates"] == 1:
+            raise TelegramConflictError("polling conflict")
+        raise asyncio.CancelledError
+
+    async def no_sleep(_seconds):
+        return None
+
+    monkeypatch.setattr("core.telegram.run_daily_reminders", daily)
+    monkeypatch.setattr("core.telegram._telegram_request", request)
+    monkeypatch.setattr("core.telegram.asyncio.sleep", no_sleep)
+    with pytest.raises(asyncio.CancelledError):
+        await telegram.run_bot("test-token", {123})
+    assert calls["getUpdates"] == 2
 
 
 @pytest.fixture(autouse=True)
