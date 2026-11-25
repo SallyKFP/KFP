@@ -79,6 +79,10 @@ _pending_consultant_assignments: dict[tuple[int, str, str, str, str], str] = {}
 _dashboard_store: DashboardStore | None = None
 
 
+CONFLICT_RETRY_SECONDS = 10
+CONFLICT_MAX_RETRIES = 18
+
+
 class TelegramConflictError(RuntimeError):
     """Raised when Telegram rejects polling because the bot has another update source."""
 
@@ -1613,6 +1617,7 @@ async def run_bot(token: str, allowed_user_ids: set[int]) -> None:
     knowledge = load_knowledge()
     history = get_history()
     offset = None
+    conflicts = 0
 
     async with (
         httpx.AsyncClient(timeout=httpx.Timeout(40.0)) as client,
@@ -1637,11 +1642,23 @@ async def run_bot(token: str, allowed_user_ids: set[int]) -> None:
                 )
             except (httpx.HTTPError, RuntimeError) as exc:
                 if isinstance(exc, TelegramConflictError):
-                    logger.error(
-                        "%s Stop any other bot polling processes or webhook, then restart once.",
+                    # Another copy is polling, usually the previous deployment that
+                    # Railway has not stopped yet. Wait for it to go away.
+                    conflicts += 1
+                    if conflicts > CONFLICT_MAX_RETRIES:
+                        raise RuntimeError(
+                            "Telegram polling conflict did not clear. Stop any other "
+                            "bot polling processes or webhook."
+                        ) from exc
+                    logger.warning(
+                        "%s Another copy is polling; retrying in %ds (%d/%d).",
                         str(exc).replace(token, "[redacted]"),
+                        CONFLICT_RETRY_SECONDS,
+                        conflicts,
+                        CONFLICT_MAX_RETRIES,
                     )
-                    return
+                    await asyncio.sleep(CONFLICT_RETRY_SECONDS)
+                    continue
                 logger.error(
                     "Telegram polling failed: %s",
                     str(exc).replace(token, "[redacted]"),
@@ -1649,6 +1666,7 @@ async def run_bot(token: str, allowed_user_ids: set[int]) -> None:
                 await asyncio.sleep(5)
                 continue
 
+            conflicts = 0
             for update in updates:
                 offset = update["update_id"] + 1
                 try:
