@@ -159,6 +159,17 @@ async def _sally_should_reply(chat_id: int, contact_label: str | None = None) ->
         return True
 
 
+async def _reminder_allowed(channel: str, contact_id: str) -> bool:
+    """Respect the dashboard switches for reminders; if they can't be read, do not send."""
+    if _dashboard_store is None:
+        return True
+    try:
+        return await asyncio.to_thread(_dashboard_store.is_contact_enabled, channel, contact_id)
+    except Exception:
+        logger.exception("Could not read dashboard switches; reminder not sent")
+        return False
+
+
 @asynccontextmanager
 async def _telegram_dashboard_storage():
     global _dashboard_store
@@ -1670,7 +1681,9 @@ async def send_telegram_reminders_with_token(
                 payload={"chat_id": chat_id, "text": text},
             )
 
-        return await send_telegram_reminders(config, calendar_service, send_message)
+        return await send_telegram_reminders(
+            config, calendar_service, send_message, should_send=_reminder_allowed
+        )
 
 
 async def run_telegram_reminders(token: str, config: dict) -> int:

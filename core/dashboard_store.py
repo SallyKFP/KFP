@@ -112,6 +112,19 @@ class DashboardStore:
             ).fetchone()
         return bool(row[0]) if row else True
 
+    def is_contact_enabled(self, channel: str, contact_id: str) -> bool:
+        """Read-only check: False if the global switch or this contact's switch is off."""
+        contact_id = _validate(channel, contact_id)
+        with psycopg.connect(self._database_url) as conn:
+            global_row = conn.execute("SELECT bot_enabled FROM dashboard_settings").fetchone()
+            contact_row = conn.execute(
+                "SELECT bot_enabled FROM dashboard_contacts WHERE channel = %s AND contact_id = %s",
+                (channel, contact_id),
+            ).fetchone()
+        if global_row and not global_row[0]:
+            return False
+        return bool(contact_row[0]) if contact_row else True
+
     def get_global_enabled(self) -> bool:
         with psycopg.connect(self._database_url) as conn:
             row = conn.execute("SELECT bot_enabled FROM dashboard_settings").fetchone()

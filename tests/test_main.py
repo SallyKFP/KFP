@@ -328,6 +328,7 @@ def test_reminder_endpoint_sends_only_whatsapp_reminders(mocker, monkeypatch):
         config,
         mock_calendar._service,
         mocker.ANY,
+        should_send=mocker.ANY,
     )
 
 

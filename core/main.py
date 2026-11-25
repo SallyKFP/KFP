@@ -420,6 +420,17 @@ def _booking_intent_fallback(history: list[dict]) -> str:
     )
 
 
+async def _reminder_allowed(channel: str, contact_id: str) -> bool:
+    """Respect the dashboard switches for reminders; if they can't be read, do not send."""
+    if _dashboard_store is None:
+        return True
+    try:
+        return await asyncio.to_thread(_dashboard_store.is_contact_enabled, channel, contact_id)
+    except Exception:
+        logger.exception("Could not read dashboard switches; reminder not sent")
+        return False
+
+
 async def _send_scheduled_reminders() -> dict:
     if not CONFIG.get("modules", {}).get("reminders"):
         logger.info("Scheduled reminders skipped because the reminders module is disabled")
@@ -431,7 +442,7 @@ async def _send_scheduled_reminders() -> dict:
         return {"sent": 0}
     calendar_service = calendars[0]._service
 
-    sent = await send_reminders(CONFIG, calendar_service, WA)
+    sent = await send_reminders(CONFIG, calendar_service, WA, should_send=_reminder_allowed)
     result = {"sent": sent}
     logger.info("WhatsApp reminders complete: %s", result)
     return result

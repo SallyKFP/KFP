@@ -133,7 +133,7 @@ def _mark_reminder_sent(
     ).execute()
 
 
-async def send_reminders(config: dict, calendar_service, wa_client) -> int:
+async def send_reminders(config: dict, calendar_service, wa_client, should_send=None) -> int:
     """
     Query Calendar for events two local calendar days ahead and send WhatsApp reminders.
     Returns number of reminders sent.
@@ -171,6 +171,9 @@ async def send_reminders(config: dict, calendar_service, wa_client) -> int:
             private_properties = event.get("extendedProperties", {}).get("private", {})
             if private_properties.get("whatsapp_reminder_sent_for") == start_date:
                 continue
+            if should_send is not None and not await should_send("whatsapp", phone):
+                logger.info("Reminder skipped: Sally is switched off for this contact")
+                continue
             msg = format_reminder_message(template, event, consultant_name)
             await wa_client.send_text(phone, msg)
             _mark_reminder_sent(
@@ -186,7 +189,7 @@ async def send_reminders(config: dict, calendar_service, wa_client) -> int:
     return sent
 
 
-async def send_telegram_reminders(config: dict, calendar_service, send_message) -> int:
+async def send_telegram_reminders(config: dict, calendar_service, send_message, should_send=None) -> int:
     """Send reminders for events two local calendar days ahead; mark successful sends."""
     tz = pytz.timezone(config["client"].get("timezone", "America/Argentina/Buenos_Aires"))
     reminder_start, reminder_end = _reminder_window(config)
@@ -216,6 +219,9 @@ async def send_telegram_reminders(config: dict, calendar_service, send_message) 
             if private_properties.get("telegram_reminder_sent_for") == start_date:
                 continue
 
+            if should_send is not None and not await should_send("telegram", str(chat_id)):
+                logger.info("Telegram reminder skipped: Sally is switched off for this chat")
+                continue
             await send_message(
                 chat_id,
                 format_reminder_message(template, event, consultant_name),

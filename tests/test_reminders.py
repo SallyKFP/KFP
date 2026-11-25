@@ -327,3 +327,47 @@ async def test_send_telegram_reminders_searches_each_consultant_calendar():
     send_message.assert_awaited_once()
     assert "Jane" in send_message.call_args.args[1]
     assert "Consultant One" in send_message.call_args.args[1]
+
+
+def _switch_off_setup():
+    config = {
+        "client": {"timezone": "America/Argentina/Buenos_Aires"},
+        "booking": {"calendar_id": "test@calendar"},
+        "reminders": {"message_template": "Reminder for {patient} with {consultant} on {date} at {time}."},
+    }
+    service = MagicMock()
+    service.events().list().execute.return_value = {
+        "items": [
+            make_mock_event(
+                "Dental Cleaning - Jane",
+                "Phone: 5491112345678\nPatient: Jane",
+                "2026-03-19T10:00:00-03:00",
+            )
+        ]
+    }
+    wa = MagicMock()
+    wa.send_text = AsyncMock()
+    return config, service, wa
+
+
+@pytest.mark.asyncio
+async def test_send_reminders_skips_contact_switched_off():
+    config, service, wa = _switch_off_setup()
+    should_send = AsyncMock(return_value=False)
+
+    count = await send_reminders(config, service, wa, should_send=should_send)
+
+    assert count == 0
+    should_send.assert_awaited_once_with("whatsapp", "5491112345678")
+    wa.send_text.assert_not_called()
+    service.events().patch.assert_not_called()
+
+
+@pytest.mark.asyncio
+async def test_send_reminders_sends_when_switch_on():
+    config, service, wa = _switch_off_setup()
+
+    count = await send_reminders(config, service, wa, should_send=AsyncMock(return_value=True))
+
+    assert count == 1
+    wa.send_text.assert_called_once()
