@@ -3,8 +3,8 @@
 # Sent after the answerable parts of the patient's message. Edit this wording to change
 # what patients see when their question needs a consultant or the administrative team.
 HANDOVER_PLACEHOLDER = (
-    "A member of our team will follow up with you on this. "
-    "Thank you for your patience."
+    "Our consultants are with patients at the moment. "
+    "Please leave your message here and our team will get back to you."
 )
 
 HANDOVER_REASONS = {"clinical", "admin"}
