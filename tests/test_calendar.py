@@ -376,3 +376,21 @@ def test_create_event(monkeypatch):
     assert "DOB" not in event_body["description"]
     assert "location" not in event_body
     assert "T11:00:00" in event_body["end"]["dateTime"]
+
+
+def test_find_events_by_phone_looks_six_months_ahead_and_reads_every_page():
+    client, service = make_client()
+    start = "2027-02-01T10:00:00+08:00"
+    page1 = {"items": [{"id": "a", "start": {"dateTime": start}, "description": "WhatsApp: 111"}],
+             "nextPageToken": "next"}
+    page2 = {"items": [{"id": "b", "start": {"dateTime": start}, "description": "WhatsApp: 6591234567"}]}
+    service.events.return_value.list.return_value.execute.side_effect = [page1, page2]
+
+    found = client.find_upcoming_events_by_phone("6591234567")
+
+    assert [e["id"] for e in found] == ["b"]
+    calls = service.events.return_value.list.call_args_list
+    assert len(calls) == 2
+    assert calls[0].kwargs["maxResults"] == 250
+    assert "timeMax" in calls[0].kwargs
+    assert calls[1].kwargs["pageToken"] == "next"

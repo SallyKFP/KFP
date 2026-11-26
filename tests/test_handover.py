@@ -23,3 +23,31 @@ def test_handover_intent_is_split_from_visible_text():
 def test_unknown_reason_falls_back_to_admin():
     assert handover_reason({"intent": "handover", "reason": "other"}) == "admin"
     assert handover_reason({"intent": "handover"}) == "admin"
+
+
+import pytest
+
+
+@pytest.mark.asyncio
+async def test_lookup_lists_appointments_found_by_number(mocker):
+    from core.main import _handle_appointment_lookup
+    mocker.patch("core.main.HISTORY", mocker.MagicMock())
+    mocker.patch("core.main._find_upcoming_events_by_phone", return_value=[
+        {"summary": "Physio", "date": "Monday March 1, 2027", "time": "10:00",
+         "location": "Clinic", "consultant": "Sarah"}])
+    send = mocker.patch("core.main.WA.send_text", new_callable=mocker.AsyncMock)
+    await _handle_appointment_lookup("6591234567")
+    assert send.call_args.args[1] == (
+        "Your next appointment is Physio: Monday March 1, 2027 at 10:00 with Sarah at Clinic.")
+
+
+@pytest.mark.asyncio
+async def test_lookup_with_no_match_hands_over_to_staff(mocker):
+    from core.main import _handle_appointment_lookup
+    mocker.patch("core.main.HISTORY", mocker.MagicMock())
+    mocker.patch("core.main._find_upcoming_events_by_phone", return_value=[])
+    pause = mocker.patch("core.main._pause_for_handover", new_callable=mocker.AsyncMock)
+    send = mocker.patch("core.main.WA.send_text", new_callable=mocker.AsyncMock)
+    await _handle_appointment_lookup("6591234567")
+    assert HANDOVER_PLACEHOLDER in send.call_args.args[1]
+    pause.assert_awaited_once_with("whatsapp", "6591234567", "admin")

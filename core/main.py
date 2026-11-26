@@ -1165,6 +1165,10 @@ async def _process_message(phone: str, user_text: str):
         await WA.send_text(phone, response)
         return
 
+    if intent and intent.get("intent") == "appointment_lookup":
+        await _handle_appointment_lookup(phone)
+        return
+
     if intent and intent.get("intent") == "availability_range_check":
         try:
             response = await asyncio.to_thread(
@@ -1756,6 +1760,35 @@ async def payment_webhook(request: Request):
         await WA.send_text(phone, "The payment was not processed. If you'd like to try again, message us.")
 
     return Response(status_code=200)
+
+
+async def _handle_appointment_lookup(phone: str):
+    """Tell the patient their upcoming appointments, found by their WhatsApp number."""
+    try:
+        events = await asyncio.to_thread(_find_upcoming_events_by_phone, phone)
+    except Exception:
+        logger.exception("WhatsApp appointment lookup failed")
+        response = "I couldn't look up your appointment just now. Please try again shortly."
+        HISTORY.add(phone, "assistant", response)
+        await WA.send_text(phone, response)
+        return
+    if not events:
+        response = compose_handover_reply("I couldn't find an upcoming appointment under this number.")
+        HISTORY.add(phone, "assistant", response)
+        await WA.send_text(phone, response)
+        await _pause_for_handover("whatsapp", phone, "admin")
+        return
+    lines = []
+    for e in events:
+        who = f" with {e['consultant']}" if e.get("consultant") else ""
+        where = f" at {e['location']}" if e.get("location") else ""
+        lines.append(f"{e['summary']}: {e['date']} at {e['time']}{who}{where}")
+    if len(lines) == 1:
+        response = f"Your next appointment is {lines[0]}."
+    else:
+        response = "Your upcoming appointments:\n" + "\n".join(f"{i}. {l}" for i, l in enumerate(lines, 1))
+    HISTORY.add(phone, "assistant", response)
+    await WA.send_text(phone, response)
 
 
 async def _handle_cancellation_request(

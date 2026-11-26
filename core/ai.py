@@ -1105,6 +1105,15 @@ def build_system_prompt(
                         "When changing an existing appointment, keep the consultant assigned to that appointment unless the patient explicitly asks to switch."
                     )
 
+
+        else:
+            lines += [
+                "",
+                "WHATSAPP APPOINTMENT LOOKUPS:",
+                "When a patient asks when their or their child's next or upcoming appointment is, treat it as an appointment lookup, not a booking or availability check. This overrides any FAQ that asks for names or a contact number: do not ask for any details, because the app already knows the sender's WhatsApp number. Briefly say you are checking and append exactly this intent: "
+                '{"intent": "appointment_lookup"}',
+                "The app searches all consultant calendars for future appointments under the sender's number and replies with the result. Never guess or state an appointment time yourself.",
+            ]
     return "\n".join(lines)
 
 

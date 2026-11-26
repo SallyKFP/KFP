@@ -293,19 +293,28 @@ class CalendarClient:
         ).execute()
         return result["id"]
 
-    def find_upcoming_events_by_phone(self, phone: str) -> list[dict]:
-        """Find future events that contain this phone number in the description."""
-        now = datetime.now(self._tz).isoformat()
-        result = self._service.events().list(
-            calendarId=self._calendar_id,
-            timeMin=now,
-            maxResults=10,
-            singleEvents=True,
-            orderBy="startTime",
-        ).execute()
+    def find_upcoming_events_by_phone(self, phone: str, horizon_days: int = 183) -> list[dict]:
+        """Find events in the next ~6 months (all of them, not just the next 10) whose description has this phone number."""
+        now_dt = datetime.now(self._tz)
+        items: list[dict] = []
+        page_token = None
+        while True:
+            result = self._service.events().list(
+                calendarId=self._calendar_id,
+                timeMin=now_dt.isoformat(),
+                timeMax=(now_dt + timedelta(days=horizon_days)).isoformat(),
+                maxResults=250,
+                singleEvents=True,
+                orderBy="startTime",
+                pageToken=page_token,
+            ).execute()
+            items.extend(result.get("items", []))
+            page_token = result.get("nextPageToken")
+            if not page_token:
+                break
 
         matching = []
-        for event in result.get("items", []):
+        for event in items:
             desc = event.get("description", "")
             if phone in desc:
                 start = event["start"].get("dateTime", "")
