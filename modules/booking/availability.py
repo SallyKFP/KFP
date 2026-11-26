@@ -9,7 +9,8 @@ from modules.booking.consultants import (
     consultant_slot_is_reserved,
     resolve_consultant,
 )
-from modules.booking.calendar import CalendarClient
+from modules.booking.calendar import CalendarClient, validate_booking_slot
+from modules.booking.consultants import allocate_consultant
 
 MAX_AVAILABILITY_RANGE_MONTHS = 3
 MAX_AVAILABILITY_RESULTS = 10
@@ -138,3 +139,107 @@ def check_availability_range(
         response += "\nThere are more available times in this range if you'd like additional options."
     response += "\nThese times are not booked or reserved yet."
     return response
+
+
+def check_slot_availability(
+    config: dict,
+    intent: dict,
+    calendar_factory: Callable[[str | None], CalendarClient],
+    remember_consultant: Callable[[dict, str], None] | None = None,
+) -> str:
+    """Check one service, date and time across the configured calendars.
+
+    Same procedure as the Telegram availability check. When no consultant was
+    requested and several are configured, one is assigned from those that are free
+    and passed to remember_consultant so the later booking keeps that consultant.
+    """
+    booking = config.get("booking", {})
+    locations = booking.get("locations", [])
+    service_name = str(intent.get("service", "")).strip()
+    location_name = str(intent.get("location", "")).strip()
+    if not service_name or not intent.get("date") or not intent.get("time"):
+        raise ValueError("Please tell me the service, date, and time you'd like me to check.")
+    if not location_name and len(locations) == 1:
+        location_name = locations[0]["name"]
+    if not location_name:
+        raise ValueError("Please tell me which clinic location you'd like me to check.")
+
+    service = _configured_item(booking.get("services", []), service_name, "service")
+    location = _configured_item(locations, location_name, "location")
+    try:
+        booking_date = date.fromisoformat(str(intent["date"]).strip())
+        start_time = datetime.strptime(str(intent["time"]).strip(), "%H:%M").time()
+    except (ValueError, KeyError) as exc:
+        raise ValueError("I couldn't identify that date and time. Please clarify them.") from exc
+
+    timezone = pytz.timezone(config.get("client", {}).get("timezone", "UTC"))
+    try:
+        validate_booking_slot(
+            booking_date,
+            start_time,
+            service["duration_minutes"],
+            booking["business_hours"],
+            location.get("days", []),
+            str(timezone),
+        )
+    except ValueError as exc:
+        raise ValueError("Could you share another preferred date and time?") from exc
+
+    consultant_name = str(intent.get("consultant", "")).strip() or None
+    consultants = configured_consultants(booking)
+    consultant = (
+        resolve_consultant(booking, consultant_name)
+        if consultant_name or len(consultants) <= 1
+        else None
+    )
+    if consultant and consultant_slot_is_reserved(consultant["name"], booking_date, start_time):
+        return (
+            f"That time isn't available with {consultant['name']}. "
+            "What other date and time would work?"
+        )
+    slot_text = (
+        f"{service['name']} on {booking_date.strftime('%A, %B')} "
+        f"{booking_date.day}, {booking_date.year} "
+        f"at {start_time.strftime('%H:%M')}"
+    )
+    if consultants and consultant is None:
+        free = [
+            candidate for candidate in consultants
+            if not consultant_slot_is_reserved(candidate["name"], booking_date, start_time)
+            and calendar_factory(candidate["name"]).is_slot_available(
+                booking_date, start_time, service["duration_minutes"]
+            )
+        ]
+        consultant = allocate_consultant(free)
+        if consultant is None:
+            return (
+                f"{slot_text} isn't available with either consultant. "
+                "What other date and time would work?"
+            )
+        available = True
+        if remember_consultant is not None:
+            remember_consultant(
+                {
+                    **intent,
+                    "service": service["name"],
+                    "date": booking_date.isoformat(),
+                    "time": start_time.strftime("%H:%M"),
+                    "location": location["name"],
+                },
+                consultant["name"],
+            )
+    else:
+        available = calendar_factory(consultant_name).is_slot_available(
+            booking_date, start_time, service["duration_minutes"]
+        )
+    consultant_text = f" with {consultant['name']}" if consultant else ""
+    if available:
+        return (
+            f"{slot_text} is available at {location['name']}{consultant_text}. "
+            "It isn't reserved yet. Would you like me to book it?"
+        )
+    return (
+        f"{slot_text} is already booked at {location['name']}{consultant_text}. "
+        "What other date and time would work? "
+        "I'll check that option too."
+    )
