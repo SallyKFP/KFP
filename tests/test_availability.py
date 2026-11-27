@@ -175,3 +175,73 @@ def test_check_availability_range_limits_reply_to_ten_options():
 
     assert response.count("\n- ") == 10
     assert "more available times" in response
+
+
+@pytest.fixture(autouse=False)
+def _env(monkeypatch):
+    monkeypatch.setenv("A", "a@cal")
+    monkeypatch.setenv("B", "b@cal")
+
+
+def _slot_config():
+    return {
+        "client": {"timezone": "Asia/Singapore"},
+        "booking": {
+            "consultants": [
+                {"name": "Consultant Sarah", "calendar_id_env": "A"},
+                {"name": "Consultant Serena", "calendar_id_env": "B"},
+            ],
+            "business_hours": {"start": "08:00", "end": "18:00"},
+            "services": [{"name": "Initial evaluation", "duration_minutes": 60, "price": 300}],
+            "locations": [{"name": "Main Office", "days": ["monday"]}],
+        },
+    }
+
+
+def _future_monday():
+    from datetime import date, timedelta
+    d = date.today() + timedelta(days=14)
+    return d + timedelta(days=(7 - d.weekday()) % 7)
+
+
+class _Cal:
+    def __init__(self, free):
+        self.free = free
+
+    def is_slot_available(self, *_):
+        return self.free
+
+
+def test_slot_check_assigns_a_free_consultant_and_remembers_it(_env):
+    from modules.booking.availability import check_slot_availability
+    remembered = []
+    intent = {"intent": "availability_check", "service": "Initial evaluation",
+              "date": _future_monday().isoformat(), "time": "10:00"}
+    reply = check_slot_availability(
+        _slot_config(), intent,
+        lambda name: _Cal(name == "Consultant Serena"),
+        lambda checked, name: remembered.append((checked["location"], name)),
+    )
+    assert "is available at Main Office with Consultant Serena" in reply
+    assert "isn't reserved yet" in reply
+    assert remembered == [("Main Office", "Consultant Serena")]
+
+
+def test_slot_check_reports_when_both_consultants_are_busy(_env):
+    from modules.booking.availability import check_slot_availability
+    intent = {"service": "Initial evaluation", "date": _future_monday().isoformat(), "time": "10:00"}
+    reply = check_slot_availability(_slot_config(), intent, lambda name: _Cal(False))
+    assert "isn't available with either consultant" in reply
+
+
+def test_whatsapp_prompt_has_availability_check_and_lookup():
+    from core.ai import build_system_prompt
+    prompt = build_system_prompt(
+        {"client": {"name": "T"}, "modules": {"booking": True},
+         "booking": {"services": [{"name": "A", "price": 1, "duration_minutes": 60}],
+                     "locations": [{"name": "M", "address": "x", "days": ["monday"]}],
+                     "business_hours": {"start": "08:00", "end": "18:00"}}},
+        "knowledge",
+    )
+    assert '"intent": "availability_check"' in prompt
+    assert "WHATSAPP APPOINTMENT LOOKUPS" in prompt

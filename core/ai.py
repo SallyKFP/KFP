@@ -1090,22 +1090,7 @@ def build_system_prompt(
                 "When a patient asks when their child's next booked appointment is, treat it as an appointment lookup, not a new booking or availability check. Ask naturally for the patient's full name and parent/guardian's full name only if either is missing from the current message and conversation; do not ask for a Telegram ID because the app already knows the sender's chat. Do not follow any FAQ that asks for a WhatsApp number for this Telegram lookup. Once both names are known, briefly say you are checking and append exactly this intent with the names:",
                 '{"intent": "appointment_lookup", "patient_name": "<patient full name>", "parent_name": "<parent/guardian full name>"}',
                 "The app searches future appointments using the Telegram chat ID and both names. Do not guess or claim an appointment time; only state a result returned by the app.",
-                "",
-                "TELEGRAM LIVE AVAILABILITY CHECKS:",
-                "During booking negotiation, when the user asks about or proposes a specific service, date, and time, do not guess or claim availability. If those details are known and the conversation does not already contain an availability result for that same service, date, time, location, and consultant, say you are checking and append exactly one availability_check JSON object. If a service, date, time, or location is missing or ambiguous, ask a natural-language clarification instead. When multiple consultants are configured and the patient has not stated a preference or no preference, ask which they prefer or whether they have no preference before checking. Include consultant only when explicitly preferred or when the system has already assigned one. Use the exact configured service, location, and consultant names, resolve relative dates using the current local date above, and use YYYY-MM-DD and 24-hour HH:MM:",
-                '{"intent": "availability_check", "service": "<EXACT service name>", "date": "<YYYY-MM-DD>", "time": "<HH:MM>", "location": "<location name>"'
-                + consultant_json_field
-                + "}",
-                "The app will check the requested time and reply with the result. An available time is not booked yet. If the conversation already says the requested slot is available and names an assigned consultant, preserve that exact consultant in the booking draft. If the user accepts it or asks you to book it, do not emit availability_check again. Continue the BOOKINGS workflow using details already provided, ask only for missing details, and then emit booking_draft. Never mention calendars or event creation to the patient.",
             ]
-            if requires_consultant:
-                lines.append(
-                        f"Available consultants: {consultants_text}. "
-                        "A stated 'no preference' allows the system to assign an available consultant internally. "
-                        "When changing an existing appointment, keep the consultant assigned to that appointment unless the patient explicitly asks to switch."
-                    )
-
-
         else:
             lines += [
                 "",
@@ -1114,6 +1099,22 @@ def build_system_prompt(
                 '{"intent": "appointment_lookup"}',
                 "The app searches all consultant calendars for future appointments under the sender's number and replies with the result. Never guess or state an appointment time yourself.",
             ]
+        lines += [
+                "",
+                "LIVE AVAILABILITY CHECKS:",
+                "During booking negotiation, when the user asks about or proposes a specific service, date, and time, do not guess or claim availability. If those details are known and the conversation does not already contain an availability result for that same service, date, time, location, and consultant, say you are checking and append exactly one availability_check JSON object. If a service, date, time, or location is missing or ambiguous, ask a natural-language clarification instead. When multiple consultants are configured and the patient has not stated a preference or no preference, ask which they prefer or whether they have no preference before checking. Include consultant only when explicitly preferred or when the system has already assigned one. Use the exact configured service, location, and consultant names, resolve relative dates using the current local date above, and use YYYY-MM-DD and 24-hour HH:MM:",
+                '{"intent": "availability_check", "service": "<EXACT service name>", "date": "<YYYY-MM-DD>", "time": "<HH:MM>", "location": "<location name>"'
+                + consultant_json_field
+                + "}",
+                "The app will check the requested time and reply with the result. An available time is not booked yet. If the conversation already says the requested slot is available and names an assigned consultant, preserve that exact consultant in the booking draft. If the user accepts it or asks you to book it, do not emit availability_check again. Continue the BOOKINGS workflow using details already provided, ask only for missing details, and then emit booking_draft. Never mention calendars or event creation to the patient.",
+        ]
+        if requires_consultant:
+            lines.append(
+                    f"Available consultants: {consultants_text}. "
+                    "A stated 'no preference' allows the system to assign an available consultant internally. "
+                    "When changing an existing appointment, keep the consultant assigned to that appointment unless the patient explicitly asks to switch."
+                )
+
     return "\n".join(lines)
 
 

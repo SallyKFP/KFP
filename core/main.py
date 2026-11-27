@@ -49,7 +49,7 @@ from modules.booking.calendar import (
     patient_age_group,
     validate_booking_slot,
 )
-from modules.booking.availability import check_availability_range
+from modules.booking.availability import check_availability_range, check_slot_availability
 from modules.booking.consultants import (
     allocate_consultant,
     configured_consultants,
@@ -64,6 +64,15 @@ from reminders.scheduler import (
 )
 
 logger = logging.getLogger(__name__)
+
+# Consultant picked during a slot check, keyed by (phone, service, date, time, location),
+# so the booking made right after keeps that consultant.
+_pending_consultant_assignments: dict[tuple[str, str, str, str, str], str] = {}
+
+
+def _consultant_assignment_key(phone: str, intent: dict) -> tuple[str, str, str, str, str] | None:
+    values = tuple(str(intent.get(k, "")).strip() for k in ("service", "date", "time", "location"))
+    return (phone, *values) if all(values) else None
 
 CONFIG = load_config()
 KNOWLEDGE = load_knowledge()
@@ -1137,6 +1146,12 @@ async def _process_message(phone: str, user_text: str):
         locations = CONFIG.get("booking", {}).get("locations", [])
         if not details.get("location") and len(locations) == 1:
             details["location"] = locations[0]["name"]
+        locations = CONFIG.get("booking", {}).get("locations", [])
+        if not details.get("location") and len(locations) == 1:
+            details["location"] = locations[0]["name"]
+        assignment_key = _consultant_assignment_key(phone, details)
+        if not modification and not details.get("consultant") and assignment_key is not None:
+            details["consultant"] = _pending_consultant_assignments.get(assignment_key)
         try:
             if modification:
                 inherit_modification_consultant(details, modification, _configured_calendar_consultants())
@@ -1156,6 +1171,30 @@ async def _process_message(phone: str, user_text: str):
         except Exception:
             PENDING_BOOKINGS.clear(key)
             raise
+        if assignment_key is not None and PENDING_BOOKINGS.get(key) is not None:
+            _pending_consultant_assignments.pop(assignment_key, None)
+        return
+
+    if intent and intent.get("intent") == "availability_check":
+        def remember(checked: dict, consultant_name: str) -> None:
+            assignment_key = _consultant_assignment_key(phone, checked)
+            if assignment_key is not None:
+                _pending_consultant_assignments[assignment_key] = consultant_name
+
+        try:
+            response = await asyncio.to_thread(
+                check_slot_availability, CONFIG, intent, _get_calendar_client, remember
+            )
+        except ValueError as exc:
+            response = str(exc)
+        except Exception:
+            logger.exception("WhatsApp calendar availability check failed")
+            response = (
+                "I couldn't check the calendar just now. The time is not confirmed as available; "
+                "please try again shortly."
+            )
+        HISTORY.add(phone, "assistant", response)
+        await WA.send_text(phone, response)
         return
 
     if intent and intent.get("intent") == "booking_confirmed":
