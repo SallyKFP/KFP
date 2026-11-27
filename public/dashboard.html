@@ -1,0 +1,50 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="robots" content="noindex, nofollow">
+  <title>Sally | Dashboard</title>
+  <style>
+    :root { color-scheme: light; font-family: system-ui, sans-serif; color: #233149; background: #f4f6fa; }
+    * { box-sizing: border-box; }
+    body { margin: 0; }
+    header { align-items: center; background: #fff; border-bottom: 1px solid #dfe5ee; display: flex; justify-content: space-between; padding: 1rem 5%; }
+    header strong { color: #3156a4; font-size: 1.25rem; }
+    main { margin: 2rem auto; max-width: 760px; padding: 0 1rem; }
+    h2 { font-size: 1.1rem; margin-top: 0; }
+    p { line-height: 1.5; }
+    .panel { background: white; border: 1px solid #dfe5ee; border-radius: .6rem; margin-bottom: 1rem; padding: 1.25rem; }
+    .row { align-items: center; border-top: 1px solid #eef1f6; display: flex; gap: 1rem; justify-content: space-between; padding: .75rem 0; }
+    .muted { color: #61708a; font-size: .85rem; }
+    .state { font-weight: 700; }
+    .on { color: #12703a; }
+    .off { color: #a4381f; }
+    button { background: white; border: 1px solid #c8d0dd; border-radius: .4rem; cursor: pointer; font: inherit; padding: .55rem .9rem; }
+    header form { margin: 0; }
+    textarea { border: 1px solid #c8d0dd; border-radius: .4rem; display: block; font: inherit; margin-bottom: .75rem; padding: .6rem; width: 100%; }
+    label { display: block; margin-bottom: .75rem; }
+  </style>
+</head>
+<body>
+  <header><strong>Sally <span>| Staff dashboard</span></strong><!-- DASHBOARD_AUTH --></header>
+  <main>
+    <section class="panel" aria-labelledby="all-chats">
+      <h2 id="all-chats">All chats</h2>
+      <p class="muted">Switch Sally off to stop replies everywhere, and back on when your team has finished handling queries. Scheduled reminders are not affected.</p>
+      <!-- DASHBOARD_GLOBAL -->
+      <!-- DASHBOARD_NEW_CONTACTS -->
+    </section>
+    <section class="panel" aria-labelledby="import-chats">
+      <h2 id="import-chats">Import existing chats</h2>
+      <p class="muted">Paste one chat per line as <code>number, name</code> (a CSV works too). Numbers starting with + or 00 are used as written, 8-digit numbers are treated as Singapore (+65), and numbers starting with 0 as Indonesian (+62). Pick OFF to keep Sally silent for these chats before they next message.</p>
+      <!-- DASHBOARD_IMPORT -->
+    </section>
+    <section class="panel" aria-labelledby="single-chats">
+      <h2 id="single-chats">Individual chats</h2>
+      <p class="muted">Chats appear here after their first message. When a supported WhatsApp Business app message echo is received, Sally is switched off for that chat until staff turn her back on. Chats with Sally switched off are listed first.</p>
+      <!-- DASHBOARD_CONTACTS -->
+    </section>
+  </main>
+</body>
+</html>
